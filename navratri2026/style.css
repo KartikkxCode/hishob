@@ -1,0 +1,43 @@
+@page { size: A4; margin: 14mm 12mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: "Mukta", sans-serif; color: #1f2328; font-size: 10.5pt; line-height: 1.45; margin: 0; }
+.top { text-align: center; border-bottom: 3px double #b4232a; padding-bottom: 8px; margin-bottom: 12px; }
+.shri { color: #b4232a; font-weight: 700; }
+h1 { margin: 0; font-size: 24pt; color: #8a1c22; line-height: 1.2; }
+.sub { font-size: 12pt; font-weight: 600; }
+.meta { font-size: 8.5pt; color: #57606a; }
+h2 { font-size: 14pt; color: #8a1c22; border-bottom: 1.5px solid #e3c2c4; margin: 16px 0 6px; padding-bottom: 2px; }
+h2.pb { break-before: page; }
+h3 { font-size: 11.5pt; margin: 10px 0 4px; color: #333; break-after: avoid; }
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.card { border: 1px solid #ddd; border-radius: 6px; padding: 6px 8px; background: #fbf7f2; }
+.card .k { font-size: 9pt; color: #57606a; }
+.card .v { font-size: 15pt; font-weight: 700; }
+.card .s { font-size: 8pt; color: #57606a; }
+.pos { color: #1a7f37; } .neg { color: #b4232a; } .warn { color: #9a6700; }
+table { width: 100%; border-collapse: collapse; margin: 4px 0 8px; font-size: 9.5pt; }
+th { background: #8a1c22; color: #fff; font-weight: 600; padding: 3px 5px; text-align: left; }
+td { padding: 2px 5px; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+tbody tr:nth-child(even) td { background: #faf8f6; }
+tfoot td { font-weight: 700; background: #f3e6e7; border-top: 1.5px solid #8a1c22; }
+table.num td:nth-child(n+3), table.num th:nth-child(n+3) { text-align: right; }
+table.num.list td:nth-child(4), table.num.list td:nth-child(5), table.num.list th:nth-child(4), table.num.list th:nth-child(5),
+table.num.due td:nth-child(7), table.num.due th:nth-child(7),
+table.num.bank td:nth-child(5), table.num.bank th:nth-child(5), table.num.bank td:nth-child(6), table.num.bank th:nth-child(6),
+table.num.exp td:nth-child(3), table.num.exp td:nth-child(4), table.num.exp th:nth-child(3), table.num.exp th:nth-child(4) { text-align: left; }
+table.sum td:first-child { width: 46%; }
+table.sum td:nth-child(n+2), table.sum th:nth-child(n+2) { text-align: right; }
+tr { break-inside: avoid; }
+.b { display: inline-block; padding: 0 6px; border-radius: 8px; font-size: 8.5pt; font-weight: 600; }
+.b-cash { background: #dafbe1; color: #116329; }
+.b-gpay { background: #ddf4ff; color: #0550ae; }
+.b-yene { background: #fff1c2; color: #7d4e00; }
+.lt { font-size: 8.5pt; color: #116329; }
+.q { color: #b4232a; font-weight: 700; }
+.note { background: #fff8e6; border-left: 4px solid #d4a72c; padding: 6px 10px; font-size: 9.5pt; margin: 6px 0; break-inside: avoid; }
+.note ul { margin: 2px 0 0; padding-left: 18px; }
+.small { font-size: 8.5pt; color: #57606a; }
+table.final { width: 70%; margin: 6px auto; font-size: 12pt; }
+table.final td:last-child { text-align: right; font-weight: 700; }
+table.final tr.hl td { background: #f3e6e7; font-weight: 700; }
+.sign { display: flex; justify-content: space-between; margin-top: 40px; text-align: center; font-size: 10pt; }
