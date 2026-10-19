@@ -18,12 +18,17 @@ def two_col(title, items, total_label, total):
     body = "".join(f'<table class="t"><tbody>{rows(c)}</tbody></table>' for c in cols)
     return f'<h3>{title}</h3><div class="two">{body}</div><div class="tot">{total_label}: <b>{rs(total)}</b></div>'
 
+# शेवटी सापडलेल्या जमा नोंदी - अतिरिक्त रकमेतून वजा
+LATE_NAMES = ("मंगेश बुजवे", "अमित बार (येणे)")
+LATE = [(n.replace(" (येणे)", ""), a, "रोख" if m == "cash" else "ऑनलाइन") for n, a, m, d, g in AFTER_INCOME if n in LATE_NAMES]
+LATE_TOTAL = sum(a for _, a, _ in LATE)
+
 inc_items = [(n.replace(" (येणे)", ""), a) for n, a, m, d, g in AFTER_INCOME]
 exp_items = [(e[0] + (f" {e[4]}" if e[4] else ""), e[1]) for e in after_exp]
 
 html = f"""<!doctype html><html lang="mr"><head><meta charset="utf-8"><title>नवरात्र उत्सव २०२६ - हिशोब</title><style>
 @page {{ size: A4; margin: 10mm 11mm; }}
-body {{ font-family: "Mukta", sans-serif; font-size: 9.5pt; color: #1f2328; margin: 0; line-height: 1.25; }}
+body {{ font-family: "Mukta", sans-serif; font-size: 9pt; color: #1f2328; margin: 0; line-height: 1.2; }}
 h1 {{ text-align: center; color: #8a1c22; margin: 0; font-size: 18pt; }}
 .sub {{ text-align: center; font-size: 9pt; color: #57606a; margin-bottom: 6px; }}
 h3 {{ color: #8a1c22; font-size: 11pt; margin: 6px 0 2px; border-bottom: 1px solid #e3c2c4; }}
@@ -49,7 +54,9 @@ tr.b td {{ font-weight: 700; background: #f3e6e7; }}
 <tr><td>ऑनलाइन मधून रोख काढले</td><td>+{r(b.withdraw)}</td><td>−{r(b.withdraw)}</td><td>0</td></tr>
 <tr class="b"><td>हिशोबाप्रमाणे शिल्लक</td><td>{r(b.c_cash)}</td><td>{r(b.c_gpay)}</td><td>{r(b.k_bal)}</td></tr>
 <tr class="b"><td>प्रत्यक्ष शिल्लक</td><td>{r(b.k_act_cash)}</td><td>{r(b.k_act_gpay)}</td><td>{r(b.k_act)}</td></tr>
-<tr><td>फरक (नोंद न झालेली जमा)</td><td></td><td></td><td>+{r(b.extra)}</td></tr>
+<tr><td>नंतर सापडलेली जमा आधी धरून आलेला फरक</td><td></td><td></td><td>+{r(b.extra + LATE_TOTAL)}</td></tr>
+{"".join(f'<tr><td>&nbsp;&nbsp;− {n} ({m})</td><td></td><td></td><td>−{r(a)}</td></tr>' for n, a, m in LATE)}
+<tr class="b"><td>उरलेला फरक (नोंद न झालेली जमा)</td><td></td><td></td><td>+{r(b.extra)}</td></tr>
 </tbody></table>
 
 {two_col(f"२. {b.BASE_DATE} नंतर आलेली जमा", inc_items, f"रोख {r(b.a_in_cash)} + ऑनलाइन {r(b.a_in_gpay)} = एकूण", b.a_in_cash + b.a_in_gpay)}
