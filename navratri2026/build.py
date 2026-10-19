@@ -3,7 +3,7 @@ from collections import OrderedDict
 from html import escape
 import json
 
-from data import VARGANI, BIG_DONORS, OTHER_INCOME, EXPENSES
+from data import VARGANI, BIG_DONORS, OTHER_INCOME, RANJEET_INCOME, EXPENSES, DUES
 
 MODE = {"cash": "रोख", "gpay": "ऑनलाइन", "yene": "येणे"}
 
@@ -52,30 +52,39 @@ for p in VARGANI:
 V = {k: sum(pg["t"][k] for pg in pages) for k in pages[0]["t"]}
 V_written = {k: sum(pg["written"][k] for pg in pages) for k in ("total", "cash", "gpay", "yene")}
 
+K, R = "कार्तिक", "रणजीत"
 big_cash = sum(a for _, a, m in BIG_DONORS if m == "cash")
 big_gpay = sum(a for _, a, m in BIG_DONORS if m == "gpay")
-oth_gpay = sum(a for _, a, m, _ in OTHER_INCOME if m == "gpay")
 oth_cash = sum(a for _, a, m, _ in OTHER_INCOME if m == "cash")
-oth_other_acct = sum(a for _, a, m, g in OTHER_INCOME if "दुसऱ्या खात्यात" in g)
+oth_gpay = sum(a for _, a, m, _ in OTHER_INCOME if m == "gpay")
 
-inc_cash = V["cash"] + V["later_cash"] + big_cash + oth_cash
-inc_gpay = V["gpay"] + V["later_gpay"] + big_gpay + oth_gpay
-inc_total = inc_cash + inc_gpay
+k_in_cash = V["cash"] + V["later_cash"] + big_cash + oth_cash
+k_in_gpay = V["gpay"] + V["later_gpay"] + big_gpay + oth_gpay
+k_in = k_in_cash + k_in_gpay
+k_exp_cash = sum(e[1] for e in EXPENSES if e[5] == K and e[2] == "cash")
+k_exp_gpay = sum(e[1] for e in EXPENSES if e[5] == K and e[2] == "gpay")
+k_exp = k_exp_cash + k_exp_gpay
+k_bal_cash = k_in_cash - k_exp_cash
+k_bal_gpay = k_in_gpay - k_exp_gpay
+k_bal = k_in - k_exp
 
-exp_cash = sum(a for _, a, m, _, _ in EXPENSES if m == "cash")
-exp_gpay = sum(a for _, a, m, _, _ in EXPENSES if m == "gpay")
-exp_total = exp_cash + exp_gpay
+r_in = sum(a for _, a, _, _ in RANJEET_INCOME)
+r_exp = sum(e[1] for e in EXPENSES if e[5] == R)
+r_own = r_exp - r_in
 
-bal_cash = inc_cash - exp_cash
-bal_gpay = inc_gpay - exp_gpay
-bal_total = inc_total - exp_total
+dues_total = sum(a for _, a in DUES)
+dues_r = sum(a for n, a in DUES if n.startswith("रणजीत"))
+dues_vendor = dues_total - dues_r
+
+inc_total = k_in + r_in
+exp_total = k_exp + r_exp
+cost_total = exp_total + dues_vendor
+final = k_bal - dues_total
+final_after = final + V["pending"]
 
 groups = OrderedDict()
-for d, a, m, g, dt in EXPENSES:
-    groups.setdefault(g, []).append((d, a, m, dt))
-
-gpay_kartik = inc_gpay - oth_other_acct
-
+for e in EXPENSES:
+    groups.setdefault(e[3], []).append(e)
 # ---------- HTML ----------
 H = []
 w = H.append
@@ -96,42 +105,61 @@ def table(head, rows, cls="", foot=None, widths=None):
 def badge(mode):
     return f'<span class="b b-{mode}">{MODE[mode]}</span>'
 
+
+def sign(n):
+    return ("शिल्लक " if n >= 0 else "तूट ") + rs(abs(n))
+
 # मुखपृष्ठ + सारांश
 w(f"""
 <header class="top">
   <div class="shri">॥ श्री ॥</div>
   <h1>नवरात्र उत्सव २०२६</h1>
-  <div class="sub">जमा-खर्च हिशोब · वर्गणी दि. 03/10/2026 ते 16/10/2026</div>
-  <div class="meta">अहवाल तयार केल्याचा दिनांक: 17/10/2026 · स्रोत: वर्गणी वही (11 पाने) व खर्च यादी</div>
+  <div class="sub">जमा-खर्च हिशोब · वर्गणी दि. 03/10/2026 पासून</div>
+  <div class="meta">अहवाल तयार केल्याचा दिनांक: 19/10/2026 · स्रोत: वर्गणी वही (11 पाने), कार्तिक व रणजीत यांची खर्च यादी, देणे दारी यादी</div>
 </header>
 
 <section class="cards">
-  <div class="card"><div class="k">एकूण जमा (मिळालेले)</div><div class="v pos">{rs(inc_total)}</div><div class="s">रोख {rs(inc_cash)} · ऑनलाइन {rs(inc_gpay)}</div></div>
-  <div class="card"><div class="k">एकूण खर्च</div><div class="v neg">{rs(exp_total)}</div><div class="s">रोख {rs(exp_cash)} · ऑनलाइन {rs(exp_gpay)}</div></div>
-  <div class="card"><div class="k">{'शिल्लक' if bal_total >= 0 else 'तूट (कमी पडलेले)'}</div><div class="v {'pos' if bal_total >= 0 else 'neg'}">{rs(abs(bal_total))}</div><div class="s">जमा − खर्च</div></div>
+  <div class="card"><div class="k">एकूण जमा (मिळालेले)</div><div class="v pos">{rs(inc_total)}</div><div class="s">कार्तिक {rs(k_in)} · रणजीत {rs(r_in)}</div></div>
+  <div class="card"><div class="k">एकूण दिलेला खर्च</div><div class="v neg">{rs(exp_total)}</div><div class="s">कार्तिक {rs(k_exp)} · रणजीत {rs(r_exp)}</div></div>
+  <div class="card"><div class="k">देणे दारी (अजून द्यायचे)</div><div class="v neg">{rs(dues_total)}</div><div class="s">रणजीत {rs(dues_r)} + इतर {rs(dues_vendor)}</div></div>
   <div class="card"><div class="k">अजून येणे बाकी (वर्गणी)</div><div class="v warn">{rs(V['pending'])}</div><div class="s">+ {V['blank']} नावे रक्कम न लिहिलेली</div></div>
 </section>
 """)
 
 w('<h2>१. एकूण सारांश</h2>')
+w('<h3>१.१ कार्तिक यांच्याकडील हिशोब (सर्व वर्गणी कार्तिक यांच्याकडे)</h3>')
 w(table(["तपशील", "रोख", "ऑनलाइन", "एकूण"], [
     ["दैनंदिन वर्गणी - त्याच दिवशी मिळालेली", r(V['cash']), r(V['gpay']), r(V['cash'] + V['gpay'])],
     ["दैनंदिन वर्गणी - येणे पैकी नंतर जमा", r(V['later_cash']), r(V['later_gpay']), r(V['later_cash'] + V['later_gpay'])],
     ["मोठ्या देणग्या (वेगळे पान)", r(big_cash), r(big_gpay), r(big_cash + big_gpay)],
-    ["सभासद वर्गणी व इतर देणग्या", r(oth_cash), r(oth_gpay), r(oth_cash + oth_gpay)],
-    ["<b>एकूण जमा</b>", f"<b>{r(inc_cash)}</b>", f"<b>{r(inc_gpay)}</b>", f"<b>{r(inc_total)}</b>"],
-    ["<b>एकूण खर्च</b>", f"<b>{r(exp_cash)}</b>", f"<b>{r(exp_gpay)}</b>", f"<b>{r(exp_total)}</b>"],
-], cls="sum", foot=["शिल्लक (+) / तूट (−)", r(bal_cash), r(bal_gpay), r(bal_total)]))
+    ["सभासद वर्गणी व इतर वर्गणी", r(oth_cash), r(oth_gpay), r(oth_cash + oth_gpay)],
+    ["<b>कार्तिक - एकूण जमा</b>", f"<b>{r(k_in_cash)}</b>", f"<b>{r(k_in_gpay)}</b>", f"<b>{r(k_in)}</b>"],
+    ["<b>कार्तिक - एकूण खर्च</b>", f"<b>{r(k_exp_cash)}</b>", f"<b>{r(k_exp_gpay)}</b>", f"<b>{r(k_exp)}</b>"],
+], cls="sum", foot=["कार्तिक यांच्याकडे शिल्लक (+) / कमी (−)", r(k_bal_cash), r(k_bal_gpay), r(k_bal)]))
+
+w('<h3>१.२ रणजीत यांच्याकडील हिशोब</h3>')
+w(table(["तपशील", "रक्कम"], [
+    ["जमा: अजित करंजकर 22,000 + स्वीकार देशपांडे 10,000", r(r_in)],
+    ["खर्च (मंडप, सजावट आगाऊ, हलगी आगाऊ, मिरवणूक आगाऊ, हार)", r(r_exp)],
+], cls="sum", foot=["रणजीत यांनी स्वतःच्या खिशातून घातलेले", r(r_own)]))
+
+w('<h3>१.३ संपूर्ण उत्सवाचा हिशोब</h3>')
+w(table(["तपशील", "रक्कम"], [
+    ["एकूण जमा (कार्तिक + रणजीत)", r(inc_total)],
+    ["एकूण दिलेला खर्च (कार्तिक + रणजीत)", r(exp_total)],
+    ["अजून द्यायचे - विक्रेते / कामे (देणे दारी)", r(dues_vendor)],
+    ["<b>उत्सवाचा एकूण खर्च (दिलेला + द्यायचा)</b>", f"<b>{r(cost_total)}</b>"],
+    ["अजून द्यायचे - रणजीत यांना परत", r(dues_r)],
+], cls="sum", foot=["एकूण जमा − उत्सवाचा एकूण खर्च", r(inc_total - cost_total)]))
 
 w(f"""<div class="note">
 <b>या आकड्यांचा अर्थ:</b>
 <ul>
-<li>रोख खर्च ({rs(exp_cash)}) हा रोख जमेपेक्षा ({rs(inc_cash)}) <b>{rs(exp_cash - inc_cash)}</b> ने जास्त आहे. हे पैसे ऑनलाइन जमेतून काढून किंवा कोणीतरी स्वतःच्या खिशातून दिले असावेत. ते कोणी दिले, हे नोंदवून ठेवा.</li>
-<li>सर्व येणे ({rs(V['pending'])}) वसूल झाले तरी एकूण हिशोब {rs(bal_total + V['pending'])} {'शिल्लक' if bal_total + V['pending'] >= 0 else 'तुटीत'} राहील.</li>
-<li>एकूण ऑनलाइन जमा {rs(inc_gpay)} पैकी <b>{rs(gpay_kartik)}</b> कार्तिक यांच्या GPay वर आले. उरलेले <b>{rs(oth_other_acct)}</b> (अजित करंजकर 22,000 + स्वीकार देशपांडे 10,000) दुसऱ्या खात्यात जमा आहेत.</li>
-<li>कार्तिक यांच्या GPay वरून सर्व ऑनलाइन खर्च ({rs(exp_gpay)}) झाला आहे. म्हणून वर्गणीपैकी <b>{rs(gpay_kartik - exp_gpay)}</b> त्यांच्याकडे ऑनलाइन शिल्लक असायला हवेत.</li>
+<li>सर्व वर्गणी कार्तिक यांच्याकडे जमा झाली: रोख {rs(k_in_cash)}, ऑनलाइन {rs(k_in_gpay)}. त्यांनी {rs(k_exp)} खर्च केले. म्हणून त्यांच्याकडे <b>{sign(k_bal)}</b> आहे (रोख {r(k_bal_cash)}, ऑनलाइन {r(k_bal_gpay)}).</li>
+<li>रणजीत यांना {rs(r_in)} मिळाले आणि त्यांनी {rs(r_exp)} खर्च केले. म्हणजे त्यांनी <b>{rs(r_own)}</b> स्वतःच्या खिशातून घातले. पण देणे दारी यादीत त्यांना फक्त {rs(dues_r)} परत द्यायचे लिहिले आहे. <b>{rs(r_own - dues_r)} चा फरक</b> रणजीत यांच्याशी बोलून तपासा.</li>
+<li>देणे दारी {rs(dues_total)} पूर्ण दिल्यावर मंडळाकडे <b>{sign(final)}</b> राहील.</li>
+<li>सर्व येणे ({rs(V['pending'])}) वसूल झाले तरी शेवटी <b>{sign(final_after)}</b> राहील.</li>
 </ul></div>""")
-
 # दिवसवार सारांश
 w('<h2>२. दिवसानुसार वर्गणी सारांश</h2>')
 rows = []
@@ -142,38 +170,46 @@ for pg in pages:
 w(table(["दिनांक", "नावे", "ठरलेली वर्गणी", "रोख मिळाले", "ऑनलाइन मिळाले", "नंतर जमा", "अजून येणे", "वहीतील एकूण"], rows,
         cls="num", foot=["एकूण", sum(len(p["rows"]) for p in pages), r(V["total"]), r(V["cash"]), r(V["gpay"]),
                           r(V["later_cash"] + V["later_gpay"]), r(V["pending"]), r(V_written["total"])]))
-w('<p class="small">“ठरलेली वर्गणी” = नावांसमोर लिहिलेल्या रकमांची बेरीज. “वहीतील एकूण” = प्रत्येक पानाच्या खाली हाताने लिहिलेली बेरीज. दोन्हीतील फरक भाग ७ मध्ये स्पष्ट केला आहे.</p>')
+w('<p class="small">“ठरलेली वर्गणी” = नावांसमोर लिहिलेल्या रकमांची बेरीज. “वहीतील एकूण” = प्रत्येक पानाच्या खाली हाताने लिहिलेली बेरीज. दोन्हीतील फरक भाग ८ मध्ये स्पष्ट केला आहे.</p>')
 
-# मोठ्या देणग्या + इतर
+
+# जमा तपशील
 w('<h2>३. मोठ्या देणग्या, सभासद वर्गणी व इतर जमा</h2>')
-w('<h3>३.१ मोठ्या देणग्या (वहीतील वेगळे पान)</h3>')
+w('<h3>३.१ मोठ्या देणग्या (वहीतील वेगळे पान) - कार्तिक</h3>')
 w(table(["#", "नाव", "रक्कम", "प्रकार"], [[i + 1, escape(n), r(a), badge(m)] for i, (n, a, m) in enumerate(BIG_DONORS)],
         cls="num", foot=["", "एकूण", r(big_cash + big_gpay), f"रोख {r(big_cash)} · ऑनलाइन {r(big_gpay)}"]))
-w('<h3>३.२ सभासद वर्गणी व इतर देणग्या (सर्व मिळाले)</h3>')
+w('<h3>३.२ सभासद वर्गणी व इतर वर्गणी - कार्तिक (सर्व मिळाले)</h3>')
 w(table(["#", "नाव", "तपशील", "प्रकार", "रक्कम"], [[i + 1, escape(n), g, badge(m), r(a)] for i, (n, a, m, g) in enumerate(OTHER_INCOME)],
         cls="num exp", foot=["", "एकूण", "", f"रोख {r(oth_cash)} · ऑनलाइन {r(oth_gpay)}", r(oth_cash + oth_gpay)]))
+w('<h3>३.३ रणजीत यांच्याकडे आलेली जमा</h3>')
+w(table(["#", "नाव", "तपशील", "प्रकार", "रक्कम"], [[i + 1, escape(n), g, badge(m), r(a)] for i, (n, a, m, g) in enumerate(RANJEET_INCOME)],
+        cls="num exp", foot=["", "एकूण", "", "", r(r_in)]))
 
 # खर्च
-w('<h2>४. खर्च तपशील (गटानुसार)</h2>')
+w('<h2 class="pb">४. खर्च तपशील (गटानुसार)</h2>')
 grows = []
 for g, items in groups.items():
-    c = sum(a for _, a, m, _ in items if m == "cash"); o = sum(a for _, a, m, _ in items if m == "gpay")
-    grows.append([g, r(c), r(o), r(c + o), f"{(c + o) * 100 / exp_total:.1f}%"])
-w(table(["खर्चाचा गट", "रोख", "ऑनलाइन", "एकूण", "टक्के"], grows, cls="num",
-        foot=["एकूण खर्च", r(exp_cash), r(exp_gpay), r(exp_total), "100%"]))
+    kk = sum(e[1] for e in items if e[5] == K); rr_ = sum(e[1] for e in items if e[5] == R)
+    grows.append([g, r(kk), r(rr_), r(kk + rr_), f"{(kk + rr_) * 100 / exp_total:.1f}%"])
+w(table(["खर्चाचा गट", "कार्तिक", "रणजीत", "एकूण", "टक्के"], grows, cls="num",
+        foot=["एकूण दिलेला खर्च", r(k_exp), r(r_exp), r(exp_total), "100%"]))
 n = 0
 for g, items in groups.items():
     w(f'<h3>{g}</h3>')
-    rr = []
-    for d, a, m, dt in items:
+    rows_ = []
+    for d, a, m, _, dt, who in items:
         n += 1
-        rr.append([n, escape(d), dt or "—", badge(m), r(a)])
-    w(table(["#", "तपशील", "दिनांक", "प्रकार", "रक्कम"], rr, cls="num exp",
-            foot=["", "गट एकूण", "", "", r(sum(a for _, a, _, _ in items))], widths=["6%", "52%", "12%", "14%", "16%"]))
-w('<p class="small">टीप: तुमच्या सांगण्याप्रमाणे सजावट एकूण 45,000 (आगाऊ 30,000 + 16/10 रोजी 10,000 रोख + 5,000 ऑनलाइन) धरली आहे. हलगीचे 10,000 आणि आगाऊ 7,000 वेगवेगळे धरले आहेत. समीर कोळेकर यांचे 40,000 मंडपाचे आहेत.</p>')
+        rows_.append([n, escape(d), dt or "—", who, badge(m), r(a)])
+    w(table(["#", "तपशील", "दिनांक", "कोणी दिले", "प्रकार", "रक्कम"], rows_, cls="num exp",
+            foot=["", "गट एकूण", "", "", "", r(sum(e[1] for e in items))], widths=["6%", "42%", "11%", "13%", "13%", "15%"]))
+w('<p class="small">एकूण खर्च (दिलेला + देणे दारी): सजावट 70,000 (रणजीत 40,000 + कार्तिक 15,000 + बाकी 15,000). मंडप समीर कोळेकर 75,000 (40,000 दिले + 35,000 बाकी). हलगी 17,000 (7,000 + 10,000). ट्रॉली ट्रॅक्टर 16,000 (6,000 दिले + 10,000 बाकी).</p>')
 
+# देणे दारी
+w('<h2>५. देणे दारी (अजून द्यायचे पैसे)</h2>')
+w(table(["#", "कोणाला / कशासाठी", "रक्कम"], [[i + 1, escape(n_), r(a)] for i, (n_, a) in enumerate(DUES)],
+        cls="num", foot=["", "एकूण देणे", r(dues_total)]))
 # येणे यादी
-w('<h2 class="pb">५. अजून येणे बाकी असलेली वर्गणी (वसुली यादी)</h2>')
+w('<h2 class="pb">६. अजून येणे बाकी असलेली वर्गणी (वसुली यादी)</h2>')
 rr = []; k = 0
 for pg in pages:
     for e in pg["rows"]:
@@ -186,7 +222,7 @@ w(table(["#", "नाव", "दिनांक", "ठरलेली", "जम�
         foot=["", "एकूण बाकी", "", "", "", r(V["pending"]), ""], widths=["5%", "27%", "9%", "10%", "9%", "13%", "27%"]))
 
 # पूर्ण यादी
-w('<h2 class="pb">६. दिवसानुसार संपूर्ण वर्गणी यादी</h2>')
+w('<h2 class="pb">७. दिवसानुसार संपूर्ण वर्गणी यादी</h2>')
 w('<p class="small">ज्या नावांवर <span class="q">?</span> आहे, ती नावे किंवा रक्कम हस्ताक्षरामुळे नीट वाचता आली नाही. ती वहीशी पडताळून पहा.</p>')
 for pg in pages:
     t = pg["t"]
@@ -204,7 +240,7 @@ for pg in pages:
             widths=["5%", "30%", "10%", "30%", "25%"]))
 
 # फरक व गृहीतके
-w('<h2 class="pb">७. वहीशी न जुळणाऱ्या बेरजा व घेतलेले निर्णय</h2>')
+w('<h2 class="pb">८. वहीशी न जुळणाऱ्या बेरजा व घेतलेले निर्णय</h2>')
 diff_rows = []
 for pg in pages:
     t = pg["t"]; wr = pg["written"]
@@ -226,13 +262,16 @@ w("""<div class="note"><ul>
 <li>योगेश दादा (1,001) व मोरे काकू (1,001) यांनी रोख दिले (तुमच्या सांगण्यानुसार). सूरज लोखंडे (4,000) व आपटे कॉलनी असोसिएशन (5,000) यांचे पैसे रोख धरले.</li>
 </ul></div>""")
 
-w(f"""<h2>८. अंतिम ताळेबंद</h2>
+
+w(f"""<h2>९. अंतिम ताळेबंद</h2>
 <table class="final"><tbody>
-<tr><td>एकूण जमा</td><td>{rs(inc_total)}</td></tr>
-<tr><td>एकूण खर्च</td><td>{rs(exp_total)}</td></tr>
-<tr class="hl"><td>{'शिल्लक' if bal_total >= 0 else 'तूट'}</td><td>{rs(abs(bal_total))}</td></tr>
+<tr><td>कार्तिक - एकूण जमा</td><td>{rs(k_in)}</td></tr>
+<tr><td>कार्तिक - एकूण खर्च</td><td>{rs(k_exp)}</td></tr>
+<tr class="hl"><td>कार्तिक यांच्याकडे</td><td>{sign(k_bal)}</td></tr>
+<tr><td>देणे दारी (रणजीत {r(dues_r)} + इतर {r(dues_vendor)})</td><td>{rs(dues_total)}</td></tr>
+<tr class="hl"><td>देणे दिल्यानंतर</td><td>{sign(final)}</td></tr>
 <tr><td>अजून वसूल करायची वर्गणी</td><td>{rs(V['pending'])}</td></tr>
-<tr class="hl"><td>सर्व येणे वसूल झाल्यावर</td><td>{rs(bal_total + V['pending'])} {'शिल्लक' if bal_total + V['pending'] >= 0 else 'तूट'}</td></tr>
+<tr class="hl"><td>सर्व येणे वसूल झाल्यावर</td><td>{sign(final_after)}</td></tr>
 </tbody></table>
 <div class="sign"><div>हिशोब तपासणारे<br><br>__________________</div><div>खजिनदार<br><br>__________________</div><div>अध्यक्ष<br><br>__________________</div></div>
 """)
@@ -241,6 +280,6 @@ CSS = open("style.css", encoding="utf-8").read()
 html = f"""<!doctype html><html lang="mr"><head><meta charset="utf-8"><title>नवरात्र उत्सव २०२६ - हिशोब</title><style>{CSS}</style></head><body>{''.join(H)}</body></html>"""
 open("hishob.html", "w", encoding="utf-8").write(html)
 
-print(json.dumps(dict(inc_cash=inc_cash, inc_gpay=inc_gpay, inc_total=inc_total, exp_cash=exp_cash, exp_gpay=exp_gpay,
-                      exp_total=exp_total, bal=bal_total, pending=V["pending"], V=V, V_written=V_written,
-                      pages=[(p["date"], p["t"]) for p in pages], gpay_kartik=gpay_kartik), ensure_ascii=False, indent=1))
+print(json.dumps(dict(k_in_cash=k_in_cash, k_in_gpay=k_in_gpay, k_exp_cash=k_exp_cash, k_exp_gpay=k_exp_gpay, k_bal=k_bal,
+                      r_in=r_in, r_exp=r_exp, r_own=r_own, dues=dues_total, final=final, pending=V["pending"],
+                      final_after=final_after, inc_total=inc_total, exp_total=exp_total, cost_total=cost_total), ensure_ascii=False, indent=1))
