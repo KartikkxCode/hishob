@@ -18,11 +18,6 @@ def two_col(title, items, total_label, total):
     body = "".join(f'<table class="t"><tbody>{rows(c)}</tbody></table>' for c in cols)
     return f'<h3>{title}</h3><div class="two">{body}</div><div class="tot">{total_label}: <b>{rs(total)}</b></div>'
 
-# शेवटी सापडलेल्या जमा नोंदी - अतिरिक्त रकमेतून वजा
-LATE_NAMES = ("मंगेश बुजवे", "अमित बार (येणे)")
-LATE = [(n.replace(" (येणे)", ""), a, "रोख" if m == "cash" else "ऑनलाइन") for n, a, m, d, g in AFTER_INCOME if n in LATE_NAMES]
-LATE_TOTAL = sum(a for _, a, _ in LATE)
-
 inc_items = [(n.replace(" (येणे)", ""), a) for n, a, m, d, g in AFTER_INCOME]
 exp_items = [(e[0] + (f" {e[4]}" if e[4] else ""), e[1]) for e in after_exp]
 
@@ -53,10 +48,8 @@ tr.b td {{ font-weight: 700; background: #f3e6e7; }}
 <tr><td>− नंतरचा खर्च</td><td>{r(b.a_exp_cash)}</td><td>{r(b.a_exp_gpay)}</td><td>{r(b.a_exp_cash + b.a_exp_gpay)}</td></tr>
 <tr><td>ऑनलाइन मधून रोख काढले</td><td>+{r(b.withdraw)}</td><td>−{r(b.withdraw)}</td><td>0</td></tr>
 <tr class="b"><td>हिशोबाप्रमाणे शिल्लक</td><td>{r(b.c_cash)}</td><td>{r(b.c_gpay)}</td><td>{r(b.k_bal)}</td></tr>
-<tr class="b"><td>प्रत्यक्ष शिल्लक</td><td>{r(b.k_act_cash)}</td><td>{r(b.k_act_gpay)}</td><td>{r(b.k_act)}</td></tr>
-<tr><td>नंतर सापडलेली जमा आधी धरून आलेला फरक</td><td></td><td></td><td>+{r(b.extra + LATE_TOTAL)}</td></tr>
-{"".join(f'<tr><td>&nbsp;&nbsp;− {n} ({m})</td><td></td><td></td><td>−{r(a)}</td></tr>' for n, a, m in LATE)}
-<tr class="b"><td>उरलेला फरक (नोंद न झालेली जमा)</td><td></td><td></td><td>+{r(b.extra)}</td></tr>
+<tr class="b"><td>प्रत्यक्ष शिल्लक (12,000 + मंगेश 2,500 + अमित 3,000)</td><td>{r(b.k_act_cash)}</td><td>{r(b.k_act_gpay)}</td><td>{r(b.k_act)}</td></tr>
+<tr class="b"><td>फरक (नोंद न झालेली जमा)</td><td></td><td></td><td>+{r(b.extra)}</td></tr>
 </tbody></table>
 
 {two_col(f"२. {b.BASE_DATE} नंतर आलेली जमा", inc_items, f"रोख {r(b.a_in_cash)} + ऑनलाइन {r(b.a_in_gpay)} = एकूण", b.a_in_cash + b.a_in_gpay)}
