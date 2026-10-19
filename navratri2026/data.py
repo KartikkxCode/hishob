@@ -301,7 +301,7 @@ EXPENSES = [
 ]
 
 # कार्तिक यांच्याकडे प्रत्यक्ष असलेली शिल्लक (19/10)
-KARTIK_ACTUAL = dict(cash=3000, gpay=8000)
+KARTIK_ACTUAL = dict(cash=4000, gpay=8000)
 
 # देणे दारी (अजून द्यायचे)
 DUES = [
