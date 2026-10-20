@@ -18,13 +18,23 @@ def two_col(title, items, total_label, total):
     body = "".join(f'<table class="t"><tbody>{rows(c)}</tbody></table>' for c in cols)
     return f'<h3>{title}</h3><div class="two">{body}</div><div class="tot">{total_label}: <b>{rs(total)}</b></div>'
 
-inc_items = [(n.replace(" (येणे)", ""), a) for n, a, m, d, g in AFTER_INCOME]
-exp_items = [(e[0] + (f" {e[4]}" if e[4] else ""), e[1]) for e in after_exp]
+def sg(n):
+    return ("+" if n > 0 else "") + r(n)
+
+kexp = [e for e in b.EXPENSES if e[6] in ("B", "A")]
+cash_out = sum(e[1] for e in kexp if e[2] == "cash")
+gpay_out = sum(e[1] for e in kexp if e[2] == "gpay")
+cash_items = [(n.split(" (")[0] if n.startswith("शुभम") or n.startswith("कार्तिक") else n, a) for n, a, m in b.BASE_INCOME if m == "cash"]
+cash_items = [(n, a) for n, a, m in b.BASE_INCOME if m == "cash"]
+cash_items = [("शुभम (मोठ्या देणग्या)", cash_items[0][1]), (f"कार्तिक ({b.BASE_DATE} पर्यंत)", cash_items[1][1]), ("सभासद (रोहन + कार्तिक)", cash_items[2][1])]
+cash_items += [(n.replace(" (येणे)", ""), a) for n, a, m, d, g in AFTER_INCOME if m == "cash"]
+cash_in = sum(a for _, a in cash_items)
+exp_items = [(e[0] + (f" {e[4]}" if e[4] else "") + (" (ऑनलाइन)" if e[2] == "gpay" else ""), e[1]) for e in kexp]
 
 html = f"""<!doctype html><html lang="mr"><head><meta charset="utf-8"><title>नवरात्र उत्सव २०२६ - हिशोब</title><style>
 @page {{ size: A4; margin: 10mm 11mm; }}
-body {{ font-family: "Mukta", sans-serif; font-size: 9pt; color: #1f2328; margin: 0; line-height: 1.2; }}
-h1 {{ text-align: center; color: #8a1c22; margin: 0; font-size: 18pt; }}
+body {{ font-family: "Mukta", sans-serif; font-size: 8.6pt; color: #1f2328; margin: 0; line-height: 1.15; }}
+h1 {{ text-align: center; color: #8a1c22; margin: 0; font-size: 15pt; }}
 .sub {{ text-align: center; font-size: 9pt; color: #57606a; margin-bottom: 6px; }}
 h3 {{ color: #8a1c22; font-size: 11pt; margin: 6px 0 2px; border-bottom: 1px solid #e3c2c4; }}
 table {{ width: 100%; border-collapse: collapse; }}
@@ -32,28 +42,29 @@ td, th {{ padding: 1px 5px; border-bottom: 1px solid #eee; }}
 th {{ background: #8a1c22; color: #fff; font-weight: 600; text-align: left; }}
 td:not(:first-child), th:not(:first-child) {{ text-align: right; }}
 tr.b td {{ font-weight: 700; background: #f3e6e7; }}
-.two {{ display: flex; gap: 12px; }} .two .t {{ flex: 1; font-size: 9pt; }}
+.two {{ display: flex; gap: 12px; }} .two .t {{ flex: 1; font-size: 8.6pt; }}
 .tot {{ text-align: right; font-size: 9.5pt; margin-top: 2px; }}
 .grid {{ display: flex; gap: 12px; }} .grid > div {{ flex: 1; }}
 .final td {{ font-size: 10.5pt; }}
 .small {{ font-size: 8.5pt; color: #57606a; }}
 </style></head><body>
 <h1>॥ श्री ॥ नवरात्र उत्सव २०२६ - हिशोब</h1>
-<div class="sub">दि. 19/10/2026 · पाया: {b.BASE_DATE} चा जुळलेला हिशोब</div>
+<div class="sub">दि. 20/10/2026</div>
 
-<h3>१. कार्तिक यांच्याकडील हिशोब</h3>
-<table><thead><tr><th>तपशील</th><th>रोख</th><th>ऑनलाइन</th><th>एकूण</th></tr></thead><tbody>
-<tr><td>{b.BASE_DATE} ला शिल्लक</td><td>{r(b.b_bal_cash)}</td><td>{r(b.b_bal_gpay)}</td><td>{r(b.b_bal)}</td></tr>
-<tr><td>+ नंतर आलेली जमा</td><td>{r(b.a_in_cash)}</td><td>{r(b.a_in_gpay)}</td><td>{r(b.a_in_cash + b.a_in_gpay)}</td></tr>
-<tr><td>− नंतरचा खर्च</td><td>{r(b.a_exp_cash)}</td><td>{r(b.a_exp_gpay)}</td><td>{r(b.a_exp_cash + b.a_exp_gpay)}</td></tr>
-<tr><td>ऑनलाइन मधून रोख काढले</td><td>+{r(b.withdraw)}</td><td>−{r(b.withdraw)}</td><td>0</td></tr>
-<tr class="b"><td>हिशोबाप्रमाणे शिल्लक</td><td>{r(b.c_cash)}</td><td>{r(b.c_gpay)}</td><td>{r(b.k_bal)}</td></tr>
-<tr class="b"><td>प्रत्यक्ष शिल्लक (12,000 + मंगेश 2,500 + अमित 3,000)</td><td>{r(b.k_act_cash)}</td><td>{r(b.k_act_gpay)}</td><td>{r(b.k_act)}</td></tr>
-<tr class="b"><td>फरक (नोंद न झालेली जमा)</td><td></td><td></td><td>+{r(b.extra)}</td></tr>
+<h3>१. कार्तिक यांच्याकडील हिशोब (संपूर्ण उत्सव)</h3>
+<table><thead><tr><th>तपशील</th><th>रोख</th><th>ऑनलाइन (GPay)</th><th>एकूण</th></tr></thead><tbody>
+<tr><td>एकूण जमा</td><td>{r(cash_in)}</td><td>{r(b.ONLINE_TOTAL)}</td><td>{r(cash_in + b.ONLINE_TOTAL)}</td></tr>
+<tr><td>ऑनलाइन मधून रोखीत वळवले</td><td>+{r(b.BASE_TRANSFER)}</td><td>−{r(b.BASE_TRANSFER)}</td><td>0</td></tr>
+<tr><td>− एकूण खर्च</td><td>{r(cash_out)}</td><td>{r(gpay_out)}</td><td>{r(cash_out + gpay_out)}</td></tr>
+<tr class="b"><td>हिशोबाप्रमाणे शिल्लक असायला हवी</td><td>{r(b.c_cash)}</td><td>{r(b.c_gpay)}</td><td>{r(b.k_bal)}</td></tr>
+<tr class="b"><td>प्रत्यक्ष शिल्लक</td><td>{r(b.k_act_cash)}</td><td>{r(b.k_act_gpay)}</td><td>{r(b.k_act)}</td></tr>
+<tr class="b"><td>फरक (प्रत्यक्ष − हिशोब)</td><td>{sg(b.k_act_cash - b.c_cash)}</td><td>{sg(b.k_act_gpay - b.c_gpay)}</td><td>{sg(b.extra)}</td></tr>
 </tbody></table>
+<div class="small">ऑनलाइन जमा = कार्तिक यांच्या GPay यादीतील 55 नोंदींची बेरीज ({r(b.ONLINE_TOTAL)}). फरक उणे (−) म्हणजे हिशोबापेक्षा पैसे कमी आहेत: तेवढा खर्च लिहायचा राहिला आहे किंवा रक्कम कोणाकडे तरी आहे.</div>
 
-{two_col(f"२. {b.BASE_DATE} नंतर आलेली जमा", inc_items, f"रोख {r(b.a_in_cash)} + ऑनलाइन {r(b.a_in_gpay)} = एकूण", b.a_in_cash + b.a_in_gpay)}
-{two_col(f"३. {b.BASE_DATE} नंतरचा खर्च", exp_items, f"रोख {r(b.a_exp_cash)} + ऑनलाइन {r(b.a_exp_gpay)} = एकूण", b.a_exp_cash + b.a_exp_gpay)}
+{two_col("२. रोख जमा", cash_items, "एकूण रोख जमा", cash_in)}
+<div class="tot">ऑनलाइन जमा (GPay यादी): <b>{rs(b.ONLINE_TOTAL)}</b></div>
+{two_col("३. कार्तिक यांचा खर्च (तुमची खर्च यादी) + शुभम पथक बुकिंग", exp_items, f"रोख {r(cash_out)} + ऑनलाइन {r(gpay_out)} = एकूण", cash_out + gpay_out)}
 
 <div class="grid"><div>
 <h3>४. रणजीत</h3>

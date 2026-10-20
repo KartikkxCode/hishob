@@ -3,7 +3,7 @@ from collections import OrderedDict
 from html import escape
 import json
 
-from data import VARGANI, BIG_DONORS, BASE_DATE, BASE_INCOME, BASE_TRANSFER, BASE_NOTE, AFTER_INCOME, RANJEET_INCOME, EXPENSES, DUES, KARTIK_ACTUAL, R
+from data import VARGANI, BIG_DONORS, BASE_DATE, BASE_INCOME, BASE_TRANSFER, BASE_NOTE, AFTER_INCOME, RANJEET_INCOME, EXPENSES, DUES, KARTIK_ACTUAL, R, ONLINE_TOTAL
 
 MODE = {"cash": "रोख", "gpay": "ऑनलाइन", "yene": "येणे"}
 
@@ -69,7 +69,8 @@ b_bal = b_bal_cash + b_bal_gpay
 
 # 12/10 नंतर
 a_in_cash = sum(a for _, a, m, _, _ in AFTER_INCOME if m == "cash")
-a_in_gpay = sum(a for _, a, m, _, _ in AFTER_INCOME if m == "gpay")
+# ऑनलाइन जमा GPay यादीच्या एकूण बेरजेवरून (12/10 पर्यंतचे वजा करून)
+a_in_gpay = ONLINE_TOTAL - b_in_gpay
 a_exp_cash = tot(EXPENSES, when="A", mode="cash")
 a_exp_gpay = tot(EXPENSES, when="A", mode="gpay")
 c_cash = b_bal_cash + a_in_cash - a_exp_cash
