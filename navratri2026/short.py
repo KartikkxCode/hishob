@@ -60,7 +60,7 @@ tr.b td {{ font-weight: 700; background: #f3e6e7; }}
 <tr class="b"><td>प्रत्यक्ष शिल्लक</td><td>{r(b.k_act_cash)}</td><td>{r(b.k_act_gpay)}</td><td>{r(b.k_act)}</td></tr>
 <tr class="b"><td>फरक (प्रत्यक्ष − हिशोब)</td><td>{sg(b.k_act_cash - b.c_cash)}</td><td>{sg(b.k_act_gpay - b.c_gpay)}</td><td>{sg(b.extra)}</td></tr>
 </tbody></table>
-<div class="small">ऑनलाइन जमा = कार्तिक यांच्या GPay यादीतील 55 नोंदींची बेरीज ({r(b.ONLINE_TOTAL)}). फरक उणे (−) म्हणजे हिशोबापेक्षा पैसे कमी आहेत: तेवढा खर्च लिहायचा राहिला आहे किंवा रक्कम कोणाकडे तरी आहे.</div>
+<div class="small">ऑनलाइन जमा = कार्तिक यांच्या GPay यादीतील बेरीज 51,962 − 5,000 = {r(b.ONLINE_TOTAL)}. फरक उणे (−) म्हणजे हिशोबापेक्षा पैसे कमी आहेत: तेवढा खर्च लिहायचा राहिला आहे किंवा रक्कम कोणाकडे तरी आहे.</div>
 
 {two_col("२. रोख जमा", cash_items, "एकूण रोख जमा", cash_in)}
 <div class="tot">ऑनलाइन जमा (GPay यादी): <b>{rs(b.ONLINE_TOTAL)}</b></div>
