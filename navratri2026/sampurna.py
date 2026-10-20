@@ -18,7 +18,7 @@ jama = [
 ]
 jama += [(n.replace(" (येणे)", "") + " - रोख", a) for n, a, m, d, g in AFTER_INCOME if m == "cash"]
 cash_in = sum(a for _, a in jama)
-jama.append(("कार्तिक - ऑनलाईन (GPay)", ONLINE_TOTAL))
+jama.append(("कार्तिक - ऑनलाईन (GPay यादी 46,962 + 3,000)", ONLINE_TOTAL))
 jama_total = cash_in + ONLINE_TOTAL
 
 def label(e):
