@@ -12,8 +12,8 @@ exp_cash = [e for e in kexp if e[2] == "cash"]
 ranj_exp = [e for e in b.EXPENSES if e[6] == "R"]
 
 jama = [
-    ("शुभम - रोख", 17000),
-    ("कार्तिक - रोख (12/10 पर्यंत)", 19555),
+    ("शुभम - रोख (मोठ्या देणग्या, वहीनुसार)", 17700),
+    ("कार्तिक - रोख (दैनंदिन वहीनुसार, 12/10 पर्यंत)", 23943),
     ("सभासद वर्गणी (रोहन 5,000 + कार्तिक 5,000) - रोख", 10000),
 ]
 jama += [(n.replace(" (येणे)", "") + " - रोख", a) for n, a, m, d, g in AFTER_INCOME if m == "cash"]
@@ -58,6 +58,7 @@ table.tal tr.t td {{ font-weight: 700; }}
 <div class="date">दिनांक: 20 ऑक्टोबर 2026</div>
 
 <h2>१) जमा</h2>
+<div class="note">12/10 च्या हिशोबात रोख जमा शुभम 17,000 + कार्तिक 19,555 = 36,555 धरली होती. वहीनुसार ती 17,700 + 23,943 = 41,643 आहे, म्हणजे <b>₹5,088 जास्त</b>. इथे वहीची रक्कम धरली आहे.</div>
 {tbl(jama, "एकूण जमा", jama_total)}
 
 <h2>२) खर्च - ऑनलाईन</h2>
@@ -76,7 +77,7 @@ table.tal tr.t td {{ font-weight: 700; }}
 <tr class="t"><td>प्रत्यक्ष शिल्लक</td><td>{r(act_c)}</td><td>{r(act_g)}</td><td>{r(act_c + act_g)}</td></tr>
 <tr><td>फरक</td><td>{sg(act_c - cash_bal)}</td><td>{sg(act_g - gpay_bal)}</td><td>{sg(act_c + act_g - cash_bal - gpay_bal)}</td></tr>
 </tbody></table>
-<div class="note">रोख कमी व ऑनलाईन जास्त दिसते, कारण रोख रक्कम GPay वर जमा झाली आहे. एकूण फरक फक्त ₹{r(act_c + act_g - cash_bal - gpay_bal)}.</div>
+<div class="note">फरक उणे (−) म्हणजे हिशोबाप्रमाणे असायला हवे त्यापेक्षा प्रत्यक्ष पैसे कमी आहेत. रोख व ऑनलाईन यांच्यात पैसे फिरल्यामुळे फक्त एकूण फरक पाहावा: ₹{r(act_c + act_g - cash_bal - gpay_bal)}.</div>
 
 <h2>५) रणजीत यांचा हिशोब</h2>
 {tbl([(f"जमा - {n}", a) for n, a, _, _ in RANJEET_INCOME], "एकूण जमा", b.r_in)}
