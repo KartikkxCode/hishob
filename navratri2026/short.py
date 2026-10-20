@@ -26,7 +26,7 @@ cash_out = sum(e[1] for e in kexp if e[2] == "cash")
 gpay_out = sum(e[1] for e in kexp if e[2] == "gpay")
 cash_items = [(n.split(" (")[0] if n.startswith("शुभम") or n.startswith("कार्तिक") else n, a) for n, a, m in b.BASE_INCOME if m == "cash"]
 cash_items = [(n, a) for n, a, m in b.BASE_INCOME if m == "cash"]
-cash_items = [("शुभम (मोठ्या देणग्या)", cash_items[0][1]), (f"कार्तिक ({b.BASE_DATE} पर्यंत)", cash_items[1][1]), ("सभासद (रोहन + कार्तिक)", cash_items[2][1])]
+cash_items = [("मोठ्या देणग्या (रोख)", cash_items[0][1]), (f"कार्तिक ({b.BASE_DATE} पर्यंत)", cash_items[1][1]), ("सभासद (रोहन + कार्तिक)", cash_items[2][1])]
 cash_items += [(n.replace(" (येणे)", ""), a) for n, a, m, d, g in AFTER_INCOME if m == "cash"]
 cash_in = sum(a for _, a in cash_items)
 exp_items = [(e[0] + (f" {e[4]}" if e[4] else "") + (" (ऑनलाइन)" if e[2] == "gpay" else ""), e[1]) for e in kexp]
@@ -64,7 +64,7 @@ tr.b td {{ font-weight: 700; background: #f3e6e7; }}
 
 {two_col("२. रोख जमा", cash_items, "एकूण रोख जमा", cash_in)}
 <div class="tot">ऑनलाइन जमा (GPay यादी): <b>{rs(b.ONLINE_TOTAL)}</b></div>
-{two_col("३. कार्तिक यांचा खर्च (तुमची खर्च यादी) + शुभम पथक बुकिंग", exp_items, f"रोख {r(cash_out)} + ऑनलाइन {r(gpay_out)} = एकूण", cash_out + gpay_out)}
+{two_col("३. खर्च ", exp_items, f"रोख {r(cash_out)} + ऑनलाइन {r(gpay_out)} = एकूण", cash_out + gpay_out)}
 
 <div class="grid"><div>
 <h3>४. रणजीत</h3>

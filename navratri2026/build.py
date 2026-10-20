@@ -137,7 +137,7 @@ w(f"""
 </header>
 
 <section class="cards">
-  <div class="card"><div class="k">एकूण जमा (मिळालेले)</div><div class="v pos">{rs(inc_total)}</div><div class="s">कार्तिक/शुभम {rs(k_in)} · रणजीत {rs(r_in)}</div></div>
+  <div class="card"><div class="k">एकूण जमा (मिळालेले)</div><div class="v pos">{rs(inc_total)}</div><div class="s">कार्तिक {rs(k_in)} · रणजीत {rs(r_in)}</div></div>
   <div class="card"><div class="k">कार्तिक कडे प्रत्यक्ष शिल्लक</div><div class="v pos">{rs(k_act)}</div><div class="s">ऑनलाइन {rs(k_act_gpay)} · रोख {rs(k_act_cash)}</div></div>
   <div class="card"><div class="k">देणे दारी (अजून द्यायचे)</div><div class="v neg">{rs(dues_total)}</div><div class="s">रणजीत {rs(dues_r)} + इतर {rs(dues_vendor)}</div></div>
   <div class="card"><div class="k">अजून येणे बाकी (वर्गणी)</div><div class="v warn">{rs(V['pending'])}</div><div class="s">+ {V['blank']} नावे रक्कम न लिहिलेली</div></div>
@@ -169,7 +169,7 @@ w(f'<p class="small">देणे दारी यादीत रणजीत �
 
 w('<h3>१.२ संपूर्ण उत्सवाचा हिशोब</h3>')
 w(table(["तपशील", "रक्कम"], [
-    ["एकूण जमा (कार्तिक/शुभम + रणजीत)", r(inc_total)],
+    ["एकूण जमा (कार्तिक + रणजीत)", r(inc_total)],
     ["एकूण दिलेला खर्च", r(exp_total)],
     ["अजून द्यायचे - विक्रेते / कामे (देणे दारी)", r(dues_vendor)],
     ["<b>उत्सवाचा एकूण खर्च (दिलेला + द्यायचा)</b>", f"<b>{r(cost_total)}</b>"],
@@ -215,7 +215,7 @@ grows = []
 for g, items in groups.items():
     a_ = sum(e[1] for e in items)
     grows.append([g, r(sum(e[1] for e in items if e[5] != R)), r(sum(e[1] for e in items if e[5] == R)), r(a_), f"{a_ * 100 / exp_total:.1f}%"])
-w(table(["खर्चाचा गट", "कार्तिक/शुभम", "रणजीत", "एकूण", "टक्के"], grows, cls="num",
+w(table(["खर्चाचा गट", "कार्तिक", "रणजीत", "एकूण", "टक्के"], grows, cls="num",
         foot=["एकूण दिलेला खर्च", r(k_exp), r(r_exp), r(exp_total), "100%"]))
 w('<p class="small">दिलेला + द्यायचा मिळून: डेकोरेशन 70,000 (रणजीत 40,000 + कार्तिक 15,000 + बाकी 15,000). मंडप समीर कोळेकर 75,000 (40,000 + बाकी 35,000). हलगी 17,000 (7,000 + 10,000). ट्रॉली ट्रॅक्टर 16,000 (कार्तिक 5,000 + रणजीत 1,000 + बाकी 10,000).</p>')
 
